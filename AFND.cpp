@@ -13,6 +13,9 @@ public:
     vector<transition> transitions;
     int final_state;
 
+    AFND(){
+
+    }
     AFND(int state_number){
         for(int i = 0; i < state_number ; i++){
             vertex.push_back(i);
@@ -104,7 +107,7 @@ AFND kleene(AFND A){
     ans.addTrasition(0, 1 , '#');
     ans.addTrasition(0, A.length() + 1 , '#');
     ans.addTrasition(A.final_state , A.length() + 1 , '#');
-    ans.addTrasition(A.final_state , 1 , '#')
+    ans.addTrasition(A.final_state , 1 , '#');
 
     for(unsigned int i = 0 ; i < A.transitions.size(); i++) {
         tempTrans = A.transitions[i];
@@ -113,6 +116,53 @@ AFND kleene(AFND A){
 
     return ans;
 }
+
+AFND fromERtoAFND(string er){
+    stack<char> operadores;
+ 	stack<AFND> operandos;
+    AFND *new_afnd;
+
+ 	char currentLetter;
+
+ 	for(string::iterator it = er.begin() ; it != er.end() ; ++it){
+        currentLetter = *it;
+        //CASO LETRA
+        if(currentLetter != '(' && currentLetter != ')' && currentLetter != '*' && currentLetter != '|' && currentLetter != '.') {
+ 			//CONSTRUCTOR TROLL
+ 			new_afnd = new AFND (2);
+ 			(*new_afnd).addTrasition(0, 1, currentLetter);
+ 			operandos.push(*new_afnd);
+ 			delete new_afnd;
+ 		} else {
+ 		    //OPERADORES
+ 			if(currentLetter == '*') {
+                AFND toKleen = operandos.top();
+ 				operandos.pop();
+ 				operandos.push(kleene(toKleen));
+ 			} else if(currentLetter == '|') {
+ 				operadores.push(currentLetter);
+ 			} else if(currentLetter == '.') {
+ 				operadores.push(currentLetter);
+ 			} else if(currentLetter == '(') {
+ 				operadores.push(currentLetter);
+ 			} else {
+ 			    //CIERRO PARENTESIS
+                char chartemp = operadores.top();
+                operadores.pop();
+                //if(chartemp == '(') continue;
+                AFND A = operandos.top();
+                operandos.pop();
+                AFND B = operandos.top();
+                operandos.pop();
+                if(chartemp == '.') operandos.push(concat(A,B));
+                if(chartemp == '|') operandos.push(cup(A,B));
+            }
+        }
+    }
+ 	return operandos.top();
+}
+
+
 
 
 int main(){
