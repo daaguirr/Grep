@@ -1,6 +1,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+const char epsilon = '#';
+
 struct transition{
     int from;
     int to;
@@ -48,10 +50,34 @@ public:
         transition tempTrans;
         for(unsigned int i = 0; i<transitions.size() ; i++){
             tempTrans = transitions[i];
-            cout << tempTrans.from << " " << "->" << tempTrans.symbol << " " << "->" << tempTrans.to << endl;
+            cout << tempTrans.from << " -> " << tempTrans.symbol << " -> " << tempTrans.to << endl;
         }
     }
+
+    vector<int> epsilonC(int state, vector<bool> visitados){
+        vector<int> ans;
+        if(visitados[state]) return ans;
+
+        vector<bool> visitadostemp = visitados;
+        visitadostemp[state] = 1;
+        ans.push_back(state);
+        for(transition tra: transitions){
+            if(tra.from == state && tra.symbol == epsilon){
+                vector<int> temp = epsilonC(tra.to, visitadostemp);
+                for(int a: temp){
+                    ans.push_back(a);
+                }
+            }
+        }
+        return ans;
+    }
+
+    vector<int> epsilonClausure(int state){
+        vector<bool> visitados(vertex.size(), 0);
+        return this -> epsilonC(state, visitados);
+    }
 };
+
 
 AFND concat(AFND A, AFND B){
     AFND ans (A.length() + B.length());
@@ -130,10 +156,11 @@ AFND fromERtoAFND(string er){
         if(currentLetter != '(' && currentLetter != ')' && currentLetter != '*' && currentLetter != '|' && currentLetter != '.') {
  			//CONSTRUCTOR TROLL
  			new_afnd = new AFND (2);
- 			(*new_afnd).addTrasition(0, 1, currentLetter);
- 			operandos.push(*new_afnd);
- 			delete new_afnd;
- 		} else {
+            (*new_afnd).addTrasition(0, 1, currentLetter);
+            (*new_afnd).addTrasition(1,0, epsilon);
+            operandos.push(*new_afnd);
+            delete new_afnd;
+        } else {
  		    //OPERADORES
  			if(currentLetter == '*') {
                 AFND toKleen = operandos.top();
@@ -162,8 +189,59 @@ AFND fromERtoAFND(string er){
  	return operandos.top();
 }
 
+vector<vector<int> >powerSet(vector<int> conj){
+    vector<vector<int> > ans;
+    return ans;
+}
+
+template <typename T>
+inline vector<T> setMinus(vector<T>, vector<T>) {
+    vector<T> ans;
+    return ans;
+}
 
 
+class AFD{
+public:
+    vector<vector<int> > states;
+    vector<transition> transitions;
+    vector<int> finalstates;
+    int init_state;
+
+    AFD(AFND A){
+        // ARREGLAR CON UN MAP POR BUSQUEDAS EFICIENTES
+        vector<int> initTemp;
+        for(int i = 0; i< A.length() ; i++) initTemp.push_back(i);
+        states = powerSet(initTemp);
+
+        vector<int> epTemp = A.epsilonClausure(0);
+        for(unsigned int i = 0 ; i<states.size() ; i++){
+            vector<int> temp1 = states[i];
+            if(true /* buscar temp 1 los estados*/) init_state = i;
+        }
+
+        vector<vector<int> > finalstatestemp = states;
+        vector<int> temp2 (1,A.final_state);
+        vector<int> temp3= setMinus(initTemp,temp2);
+        vector<vector<int> > temp4 = powerSet(temp3);
+        finalstatestemp = setMinus(finalstatestemp, temp4);
+        for(vector<int> state : states){ //falta for para los chars
+            for(int state2 :  state){
+                //ans = (existstransition(state2, c , q') ? : cup(ans, A.epsilonClausure(q1)) ans;
+            }
+            // transitions.push_back(id(Q) , c , id(ans))
+        }
+
+    }
+    void addTransition(int from, int to, char c){
+        transition temp;
+        temp.from = from;
+        temp.to = to;
+        temp.symbol = c;
+        transitions.push_back(temp);
+    }
+
+};
 
 int main(){
     return 0;
