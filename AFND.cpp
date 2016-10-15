@@ -1,7 +1,10 @@
 #include <bits/stdc++.h>
 using namespace std;
+typedef vector<int> vi;
+typedef vector<vi> vvi;
 
 const char epsilon = '#';
+vector<char> sigma;
 
 struct transition{
     int from;
@@ -157,7 +160,7 @@ AFND fromERtoAFND(string er){
  			//CONSTRUCTOR TROLL
  			new_afnd = new AFND (2);
             (*new_afnd).addTrasition(0, 1, currentLetter);
-            (*new_afnd).addTrasition(1,0, epsilon);
+            //(*new_afnd).addTrasition(1,0, epsilon);
             operandos.push(*new_afnd);
             delete new_afnd;
         } else {
@@ -189,11 +192,22 @@ AFND fromERtoAFND(string er){
  	return operandos.top();
 }
 
+void initSigma(){
+    for(char i = 48; i <= 57 ; i++) sigma.push_back(i);
+    for(char i = 65; i <= 90 ; i++) sigma.push_back(i);
+    for(char i = 97; i <= 122 ; i++) sigma.push_back(i);
+
+}
 vector<vector<int> >powerSet(vector<int> conj){
     vector<vector<int> > ans;
     return ans;
 }
-
+vi cup(vi A, vi B){
+    vi ans;
+    for(int i: A) ans.push_back(i);
+    for(int i: B) ans.push_back(i);
+    return ans;
+}
 template <typename T>
 inline vector<T> setMinus(vector<T>, vector<T>) {
     vector<T> ans;
@@ -203,33 +217,49 @@ inline vector<T> setMinus(vector<T>, vector<T>) {
 
 class AFD{
 public:
-    vector<vector<int> > states;
+    vvi states;
     vector<transition> transitions;
-    vector<int> finalstates;
+    vi finalstates;
     int init_state;
+    map<vi, int> mapa;
 
     AFD(AFND A){
-        // ARREGLAR CON UN MAP POR BUSQUEDAS EFICIENTES
-        vector<int> initTemp;
+
+        multimap<pair<int, char>, int> mapatr;
+        for(transition tra : A.transitions) mapatr.insert(make_pair(make_pair(tra.from, tra.symbol), tra.to));
+
+        //Estados
+        vi initTemp;
         for(int i = 0; i< A.length() ; i++) initTemp.push_back(i);
         states = powerSet(initTemp);
+        for(unsigned int i = 0; i<states.size(); i++) mapa.insert(make_pair(states[i], i));
 
-        vector<int> epTemp = A.epsilonClausure(0);
-        for(unsigned int i = 0 ; i<states.size() ; i++){
-            vector<int> temp1 = states[i];
-            if(true /* buscar temp 1 los estados*/) init_state = i;
-        }
+        //Estado Inicial
+        vi epTemp = A.epsilonClausure(0);
+        init_state = mapa[epTemp];
 
-        vector<vector<int> > finalstatestemp = states;
-        vector<int> temp2 (1,A.final_state);
-        vector<int> temp3= setMinus(initTemp,temp2);
-        vector<vector<int> > temp4 = powerSet(temp3);
+        //Estados Finales
+        vvi finalstatestemp = states;
+        vi temp2(1,A.final_state);
+        vi temp3= setMinus(initTemp,temp2);
+        vvi temp4 = powerSet(temp3);
         finalstatestemp = setMinus(finalstatestemp, temp4);
-        for(vector<int> state : states){ //falta for para los chars
-            for(int state2 :  state){
-                //ans = (existstransition(state2, c , q') ? : cup(ans, A.epsilonClausure(q1)) ans;
+        for(vi state: finalstatestemp) finalstates.push_back(mapa[state]);
+
+        //Transiciones
+
+        for(char c: sigma){
+            for(vi Q : states){ //falta for para los chars
+                vi ans;
+                for(int q : Q){
+                    multimap<pair<int, char>, int>::iterator it;
+                    for (it=mapatr.equal_range(make_pair(q,c)).first; it!=mapatr.equal_range(make_pair(q,c)).second; ++it){
+                        auto q1 = it -> second;
+                        ans = cup(ans, A.epsilonClausure(q1));
+                    }
+                }
+                this -> addTransition(mapa[Q],mapa[ans],c);
             }
-            // transitions.push_back(id(Q) , c , id(ans))
         }
 
     }
