@@ -1,11 +1,11 @@
 #include <bits/stdc++.h>
 using namespace std;
-typedef vector<int> vi;
-typedef vector<vi> vvi;
+typedef set<int> si;
+typedef vector<si> vsi;
 typedef long long intt;
 
 const char epsilon = '#';
-vector<char> sigma;
+set<char> sigma;
 
 struct transition{
     int from;
@@ -58,25 +58,25 @@ public:
         }
     }
 
-    vector<int> epsilonC(int state, vector<bool> visitados){
-        vector<int> ans;
+    set<int> epsilonC(int state, vector<bool> visitados){
+        set<int> ans;
         if(visitados[state]) return ans;
 
         vector<bool> visitadostemp = visitados;
         visitadostemp[state] = 1;
-        ans.push_back(state);
+        ans.insert(state);
         for(transition tra: transitions){
-            if(tra.from == state && tra.symbol == epsilon){
-                vector<int> temp = epsilonC(tra.to, visitadostemp);
+            if(tra.from == state && tra.symbol == '#'){
+                set<int> temp = epsilonC(tra.to, visitadostemp);
                 for(int a: temp){
-                    ans.push_back(a);
+                    ans.insert(a);
                 }
             }
         }
         return ans;
     }
 
-    vector<int> epsilonClausure(int state){
+    set<int> epsilonClausure(int state){
         vector<bool> visitados(vertex.size(), 0);
         return this -> epsilonC(state, visitados);
     }
@@ -194,21 +194,22 @@ AFND fromERtoAFND(string er){
  	return operandos.top();
 }
 
-void initSigma(){
-    for(char i = 48; i <= 57 ; i++) sigma.push_back(i);
-    for(char i = 65; i <= 90 ; i++) sigma.push_back(i);
-    for(char i = 97; i <= 122 ; i++) sigma.push_back(i);
-
+void initSigma(string reg){
+    for(string::iterator it = reg.begin() ; it != reg.end() ; ++it){
+        char currentLetter = *it;
+        if(currentLetter != '(' && currentLetter != ')' && currentLetter != '*' && currentLetter != '|' && currentLetter != '.') sigma.insert(currentLetter);
+    }
 }
+
 vector<vector<int> >powerSet(vector<int> conj){
     vector<vector<int> > ans;
     throw "powerSet not implemented";
     return ans;
 }
-vi cup(vi A, vi B){
-    vi ans;
-    for(int i: A) ans.push_back(i);
-    for(int i: B) ans.push_back(i);
+si cup(si A, si B){
+    si ans;
+    for(int i: A) ans.insert(i);
+    for(int i: B) ans.insert(i);
     return ans;
 }
 template <typename T>
@@ -219,8 +220,8 @@ inline vector<T> setMinus(vector<T>, vector<T>) {
 }
 
 template<class T>
-set<set<T>> powerSet(const set<T> &S) {
-    set<set<T>> ans;
+vector<set<T>> powerSet(const set<T> &S) {
+    vector<set<T>> ans;
     intt full = 1LL << S.size();
     for (intt b = 0; b < full; ++b) {
         set<T> subset;
@@ -232,8 +233,9 @@ set<set<T>> powerSet(const set<T> &S) {
                 subset.insert(x);
             m <<= 1;
         }
-        ans.insert(subset);
+        ans.push_back(subset);
     }
+    return ans;
 }
 
 template<class T>
@@ -246,40 +248,47 @@ set<T> setMinus(const set<T> &a, const set<T> &b) {
 
 class AFD{
 public:
-    vvi states;
+    vsi states;
     vector<transition> transitions;
-    vi finalstates;
+    vector<int> finalstates;
     int init_state;
-    map<vi, int> mapa;
+    map<si, int> mapa;
 
     AFD(AFND A){
 
         multimap<pair<int, char>, int> mapatr;
         for(transition tra : A.transitions) mapatr.insert(make_pair(make_pair(tra.from, tra.symbol), tra.to));
 
+
         //Estados
-        vi initTemp;
-        for(int i = 0; i< A.length() ; i++) initTemp.push_back(i);
+        si initTemp;
+        for(int i = 0; i< A.length() ; i++) initTemp.insert(i);
         states = powerSet(initTemp);
+
         for(unsigned int i = 0; i<states.size(); i++) mapa.insert(make_pair(states[i], i));
 
         //Estado Inicial
-        vi epTemp = A.epsilonClausure(0);
+        si epTemp = A.epsilonClausure(0);
         init_state = mapa[epTemp];
 
         //Estados Finales
-        vvi finalstatestemp = states;
-        vi temp2(1,A.final_state);
-        vi temp3= setMinus(initTemp,temp2);
-        vvi temp4 = powerSet(temp3);
-        finalstatestemp = setMinus(finalstatestemp, temp4);
-        for(vi state: finalstatestemp) finalstates.push_back(mapa[state]);
+        vsi finalstatestemp = states;
+        si temp2({A.final_state});
+        si temp3= setMinus(initTemp,temp2);
+        vsi temp4 = powerSet(temp3);
+
+        for(si state: temp4){
+            finalstatestemp.erase(remove(finalstatestemp.begin(), finalstatestemp.end(), state), finalstatestemp.end());
+        }
+        printf("aqui\n");
+        for(si state: finalstatestemp) finalstates.push_back(mapa[state]);
+
 
         //Transiciones
 
         for(char c: sigma){
-            for(vi Q : states){ //falta for para los chars
-                vi ans;
+            for(si Q : states){ //falta for para los chars
+                si ans;
                 for(int q : Q){
                     multimap<pair<int, char>, int>::iterator it;
                     for (it=mapatr.equal_range(make_pair(q,c)).first; it!=mapatr.equal_range(make_pair(q,c)).second; ++it){
@@ -287,7 +296,7 @@ public:
                         ans = cup(ans, A.epsilonClausure(q1));
                     }
                 }
-                this -> addTransition(mapa[Q],mapa[ans],c);
+                if(!ans.empty()) this -> addTransition(mapa[Q],mapa[ans],c);
             }
         }
 
@@ -299,12 +308,22 @@ public:
         temp.symbol = c;
         transitions.push_back(temp);
     }
+    void print(){
+        transition tempTrans;
+        for(unsigned int i = 0; i<transitions.size() ; i++){
+            tempTrans = transitions[i];
+            cout << tempTrans.from << " -> " << tempTrans.symbol << " -> " << tempTrans.to << endl;
+        }
+    }
+
 
 };
 
 int main(){
     string reg = "((u.n)|(n.o))";
     AFND temp = fromERtoAFND(reg);
-    temp.print();
+    initSigma(reg);
+    AFD temp2(temp);
+    temp2.print();
     return 0;
 }
