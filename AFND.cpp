@@ -2,6 +2,7 @@
 using namespace std;
 typedef vector<int> vi;
 typedef vector<vi> vvi;
+typedef long long intt;
 
 const char epsilon = '#';
 vector<char> sigma;
@@ -200,6 +201,7 @@ void initSigma(){
 }
 vector<vector<int> >powerSet(vector<int> conj){
     vector<vector<int> > ans;
+    throw "powerSet not implemented";
     return ans;
 }
 vi cup(vi A, vi B){
@@ -211,9 +213,35 @@ vi cup(vi A, vi B){
 template <typename T>
 inline vector<T> setMinus(vector<T>, vector<T>) {
     vector<T> ans;
+    throw "setMinus not implemented";
     return ans;
 }
 
+template<class T>
+set<set<T>> powerSet(const set<T> &S) {
+    set<set<T>> ans;
+    intt full = 1LL << S.size();
+    for (intt b = 0; b < full; ++b) {
+        set<T> subset;
+        intt m = 1;
+        for (T x : S) {
+            if (m > b)
+                break;
+            if (b & m)
+                subset.insert(x);
+            m <<= 1;
+        }
+        ans.insert(subset);
+    }
+}
+
+template<class T>
+set<T> setMinus(const set<T> &a, const set<T> &b) {
+    set<T> ans;
+    set_difference(a.begin(), a.end(), b.begin(), b.end(),
+                   inserter(ans, ans.end()));
+    return ans;
+}
 
 class AFD{
 public:
