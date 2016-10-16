@@ -112,9 +112,9 @@ AFND cup (AFND A, AFND B){
     // Ver Documentacion para orden
 
     ans.addTrasition(0, 1 , '#');
-    ans.addTrasition(A.final_state, A.length() + B.length() + 1 , '#');
+    ans.addTrasition(A.final_state + 1, A.length() + B.length() + 1 , '#');
     ans.addTrasition(0, A.length() + 1 , '#');
-    ans.addTrasition( A.length() + B.final_state , A.length() + B.length() + 1 , '#');
+    ans.addTrasition( A.length() + B.final_state + 1, A.length() + B.length() + 1 , '#');
 
 
     for(unsigned int i = 0 ; i < A.transitions.size(); i++) {
@@ -185,8 +185,9 @@ AFND fromERtoAFND(string er){
                 operandos.pop();
                 AFND B = operandos.top();
                 operandos.pop();
-                if(chartemp == '.') operandos.push(concat(A,B));
-                if(chartemp == '|') operandos.push(cup(A,B));
+                if(chartemp == '.') operandos.push(concat(B,A));
+                if(chartemp == '|') operandos.push(cup(B,A));
+                operadores.pop();
             }
         }
     }
@@ -302,5 +303,8 @@ public:
 };
 
 int main(){
+    string reg = "((u.n)|(n.o))";
+    AFND temp = fromERtoAFND(reg);
+    temp.print();
     return 0;
 }
