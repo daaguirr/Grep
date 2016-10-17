@@ -13,6 +13,8 @@ struct transition{
     char symbol;     // NOTA : '#' SERA EL SIMBOLO EPSILON
 };
 
+vector<si> MEM;
+vector<bool> init_mem;
 class AFND{
 public:
     vector<int> vertex;
@@ -60,8 +62,10 @@ public:
 
     set<int> epsilonC(int state, vector<bool> visitados){
         set<int> ans;
+        if(init_mem[state]) return MEM[state];
+        
         if(visitados[state]) return ans;
-
+		
         vector<bool> visitadostemp = visitados;
         visitadostemp[state] = 1;
         ans.insert(state);
@@ -73,11 +77,19 @@ public:
                 }
             }
         }
+        
+        init_mem[state] = true;
+        MEM[state] = ans;
         return ans;
     }
 
     set<int> epsilonClausure(int state){
         vector<bool> visitados(vertex.size(), 0);
+        if(MEM.empty()){
+			si temp;
+			for(int i=0 ; i<this -> length() ; i++) MEM.push_back(temp);
+			for(int i=0 ; i<this -> length() ; i++) init_mem.push_back(false);
+		}
         return this -> epsilonC(state, visitados);
     }
 };
@@ -258,10 +270,10 @@ public:
     vector<transition> transitions;
     vector<int> finalstates;
     int init_state;
-    map<si, int> mapa;
+    map<pair<int,char> , int> mapa_transiciones;
 
     AFD(AFND A){
-
+		map<si, int> mapa;
         multimap<pair<int, char>, int> mapatr;
         for(transition tra : A.transitions) mapatr.insert(make_pair(make_pair(tra.from, tra.symbol), tra.to));
 
@@ -306,6 +318,7 @@ public:
                     }
                 }
                 this -> addTransition(mapa[Q],mapa[ans],c);
+                mapa_transiciones.insert(make_pair(make_pair(mapa[Q],c),mapa[ans]));
                 //imprimirset(ans);
 
             }
@@ -349,15 +362,16 @@ public:
 };
 
 int main(){
-    string reg = "((u.n)|(n.o))";
-    //string reg = "((a.b)|((a.b).a))*";
+    //string reg = "((u.n)|(n.o))";
+    string reg = "((a.b)|((a.b).a))*";
     //string reg = "((a.b).a)";
     AFND temp = fromERtoAFND(reg);
     //temp.print();
     initSigma(reg);
     AFD temp2(temp);
-    for(int i = 0 ; i< temp2.states.size() ; i++) visitados.push_back(0);
+    for(unsigned int i = 0 ; i< temp2.states.size() ; i++) visitados.push_back(0);
     temp2.dfs(temp2.init_state);
     //temp2.print();
     return 0;
 }
+
