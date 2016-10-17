@@ -84,7 +84,7 @@ public:
 
 
 AFND concat(AFND A, AFND B){
-    AFND ans (A.length() + B.length());
+    AFND ans (A.length() + B.length()-1);
     transition tempTrans;
 
     //Primera parte del AFND
@@ -94,12 +94,12 @@ AFND concat(AFND A, AFND B){
     }
 
     //Transicion Epsilon
-    ans.addTrasition(A.final_state , A.length() , '#');
+    //ans.addTrasition(A.final_state , A.length() , '#');
 
     //SEGUNDA PARTE CORRIDA
     for(unsigned int i = 0; i< B.transitions.size() ; i++){
         tempTrans = B.transitions[i];
-        ans.addTrasition(tempTrans.from + A.length() , tempTrans.to + A.length() , tempTrans.symbol);
+        ans.addTrasition(tempTrans.from + A.length() - 1 , tempTrans.to + A.length() - 1 , tempTrans.symbol);
     }
 
     return ans;
@@ -136,8 +136,8 @@ AFND kleene(AFND A){
 
     ans.addTrasition(0, 1 , '#');
     ans.addTrasition(0, A.length() + 1 , '#');
-    ans.addTrasition(A.final_state , A.length() + 1 , '#');
-    ans.addTrasition(A.final_state , 1 , '#');
+    ans.addTrasition(A.final_state+1, A.length() + 1 , '#');
+    ans.addTrasition(A.final_state+1 , 1 , '#');
 
     for(unsigned int i = 0 ; i < A.transitions.size(); i++) {
         tempTrans = A.transitions[i];
@@ -192,6 +192,12 @@ AFND fromERtoAFND(string er){
         }
     }
  	return operandos.top();
+}
+
+void imprimirset(set<int> a){
+    si::iterator it;
+    for(it = a.begin() ; it!=a.end() ; it++) cout << *it << " , ";
+    cout << endl;
 }
 
 void initSigma(string reg){
@@ -291,12 +297,16 @@ public:
                 si ans;
                 for(int q : Q){
                     multimap<pair<int, char>, int>::iterator it;
+                    //cout << q << " " << c << endl;
                     for (it=mapatr.equal_range(make_pair(q,c)).first; it!=mapatr.equal_range(make_pair(q,c)).second; ++it){
                         auto q1 = it -> second;
                         ans = cup(ans, A.epsilonClausure(q1));
+
                     }
                 }
-                if(!ans.empty()) this -> addTransition(mapa[Q],mapa[ans],c);
+                this -> addTransition(mapa[Q],mapa[ans],c);
+                //imprimirset(ans);
+
             }
         }
 
@@ -316,14 +326,32 @@ public:
         }
     }
 
+    void dfs(int state, vector<bool> visitados){
+        if(visitados[state]) return;
+        vector<bool> visitadostemp = visitados;
+        visitadostemp[state] = 1;
+        for(transition tra: transitions){
+            if(tra.from == state){
+                cout << state << " -> " << tra.symbol << " -> " << tra.to << endl;
+                dfs(tra.to, visitadostemp);
+
+            }
+        }
+    }
+
 
 };
 
 int main(){
-    string reg = "((u.n)|(n.o))";
+    //string reg = "((u.n)|(n.o))";
+    string reg = "((a.b)|((a.b).a))*";
+    //string reg = "((a.b).a)";
     AFND temp = fromERtoAFND(reg);
+    temp.print();
     initSigma(reg);
     AFD temp2(temp);
-    temp2.print();
+    vector<bool> temp3(0,temp2.transitions.size());
+    temp2.dfs(temp2.init_state, temp3);
+    //temp2.print();
     return 0;
 }
