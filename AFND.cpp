@@ -251,7 +251,7 @@ set<T> setMinus(const set<T> &a, const set<T> &b) {
                    inserter(ans, ans.end()));
     return ans;
 }
-
+vector<bool> visitados;
 class AFD{
 public:
     vsi states;
@@ -277,6 +277,8 @@ public:
         si epTemp = A.epsilonClausure(0);
         init_state = mapa[epTemp];
 
+        imprimirset(epTemp);
+
         //Estados Finales
         vsi finalstatestemp = states;
         si temp2({A.final_state});
@@ -286,7 +288,6 @@ public:
         for(si state: temp4){
             finalstatestemp.erase(remove(finalstatestemp.begin(), finalstatestemp.end(), state), finalstatestemp.end());
         }
-        printf("aqui\n");
         for(si state: finalstatestemp) finalstates.push_back(mapa[state]);
 
 
@@ -326,32 +327,37 @@ public:
         }
     }
 
-    void dfs(int state, vector<bool> visitados){
+    void dfs(int state){
         if(visitados[state]) return;
-        vector<bool> visitadostemp = visitados;
-        visitadostemp[state] = 1;
+
+        visitados[state] = true;
+        int i = 0;
         for(transition tra: transitions){
+
             if(tra.from == state){
                 cout << state << " -> " << tra.symbol << " -> " << tra.to << endl;
-                dfs(tra.to, visitadostemp);
+                i++;
+                dfs(tra.to);
 
             }
+
         }
+        //cout << state << "," << i << endl;
     }
 
 
 };
 
 int main(){
-    //string reg = "((u.n)|(n.o))";
-    string reg = "((a.b)|((a.b).a))*";
+    string reg = "((u.n)|(n.o))";
+    //string reg = "((a.b)|((a.b).a))*";
     //string reg = "((a.b).a)";
     AFND temp = fromERtoAFND(reg);
-    temp.print();
+    //temp.print();
     initSigma(reg);
     AFD temp2(temp);
-    vector<bool> temp3(0,temp2.transitions.size());
-    temp2.dfs(temp2.init_state, temp3);
+    for(int i = 0 ; i< temp2.states.size() ; i++) visitados.push_back(0);
+    temp2.dfs(temp2.init_state);
     //temp2.print();
     return 0;
 }
