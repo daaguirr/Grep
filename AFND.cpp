@@ -5,7 +5,7 @@ typedef vector<si> vsi;
 typedef long long intt;
 
 const char epsilon = '#';
-set<char> sigma;
+set<char> sigma = {'a','b'};
 
 struct transition{
     int from;
@@ -205,11 +205,13 @@ AFND fromERtoAFND(string er){
  	return operandos.top();
 }
 
-void putSelfLoops(AFND A){
+AFND putSelfLoops(AFND A){
+    AFND ans(2);
+    ans.addTrasition(0,'#',1);
     for(char c: sigma){
         A.addTrasition(0,c,0);
-        A.addTrasition(A.final_state, c , A.final_state);
     }
+    return concat(A,ans);
 }
 
 void imprimirset(set<int> a){
@@ -222,6 +224,7 @@ void initSigma(){
     for(char i = 48; i <= 57 ; i++) sigma.insert(i);
     for(char i = 65; i <= 90 ; i++) sigma.insert(i);
     for(char i = 97; i <= 122 ; i++) sigma.insert(i);
+    sigma.insert(' ');
 }
 
 vector<vector<int> >powerSet(vector<int> conj){
@@ -314,6 +317,8 @@ public:
                     mapa.insert(make_pair(ans,++contador));
                     dfs_stack.push(ans);
                     states.push_back(ans);
+                    imprimirset(ans);
+                    cout << fstate << endl;
                     if(ans.count(fstate)!=0) finalstates.push_back(mapa[ans]);
                 }
                 this -> addTransition(mapa[Q], mapa[ans], c);
@@ -370,32 +375,32 @@ bool lector(AFD A, string line){
         currentLetter = *it;
         key = make_pair(currentState,currentLetter);
         currentState = A.mapa_transiciones[key];
-    }
-
-    vector<int> finalStates = A.finalstates;
-
-    for(unsigned int i = 0; i<finalStates.size(); i++){
-        int finalState = finalStates[i];
-        if (currentState == finalState){
-            return true;
+        for(int i: A.finalstates){
+             if(currentState == i) return true;
         }
-    }
 
+    }
     return false;
 }
 
+void imprimirvector(vector<int> A){
+    for(int i: A) cout << A[i] << " ";
+    cout << "\n";
+}
 int main(){
     //string reg = "((u.n)|(n.o))";
     string reg = "((a.b)|((a.b).a))*";
     //string reg = "((a.b).a)";
     AFND temp = fromERtoAFND(reg);
-    //temp.print();
-    initSigma();
-    putSelfLoops(temp);
+    //initSigma();
+    AFND temp2 = putSelfLoops(temp);
+    temp2.print();
     //cout << temp.final_state << endl;
-    AFD temp2(temp);
-    for(unsigned int i = 0 ; i< temp2.states.size() ; i++) visitados.push_back(0);
-    temp2.dfs(temp2.init_state);
+    AFD temp3(temp2);
+    imprimirvector(temp3.finalstates);
+    //for(unsigned int i = 0 ; i< temp3.states.size() ; i++) visitados.push_back(0);
+    //temp3.dfs(temp3.init_state);
+    //cout << lector(temp3, "Caminando en linea recta no puede uno llegar muy lejos") << endl;
     //temp2.print();
     return 0;
 }
