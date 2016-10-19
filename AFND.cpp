@@ -352,6 +352,30 @@ public:
 
 };
 
+bool lector(AFD A, string line){
+    int currrentState = A.init_state;
+    char currentLetter;
+    pair<int,char> key;
+
+    for(string::iterator it = line.begin() ; it != texto.end(); ++it){
+        currentLetter = *it;
+        key = make_pair(currentState,currentLetter);
+        currentState = A.mapa_transiciones[key];
+        i++;
+    }
+
+    finalStates = A.finalstates;
+
+    for(int i = 0; i<len(finalStates); i++){
+        int finalState = finalStates[i];
+        if (currentState = finalState){
+            return true;
+        }
+    }
+
+    return false;
+}
+
 int main(){
     //string reg = "((u.n)|(n.o))";
     string reg = "((a.b)|((a.b).a))*";
