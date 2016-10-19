@@ -205,17 +205,23 @@ AFND fromERtoAFND(string er){
  	return operandos.top();
 }
 
+void putSelfLoops(AFND A){
+    for(char c: sigma){
+        A.addTrasition(0,c,0);
+        A.addTrasition(A.final_state, c , A.final_state);
+    }
+}
+
 void imprimirset(set<int> a){
     si::iterator it;
     for(it = a.begin() ; it!=a.end() ; it++) cout << *it << " , ";
     cout << endl;
 }
 
-void initSigma(string reg){
-    for(string::iterator it = reg.begin() ; it != reg.end() ; ++it){
-        char currentLetter = *it;
-        if(currentLetter != '(' && currentLetter != ')' && currentLetter != '*' && currentLetter != '|' && currentLetter != '.') sigma.insert(currentLetter);
-    }
+void initSigma(){
+    for(char i = 48; i <= 57 ; i++) sigma.insert(i);
+    for(char i = 65; i <= 90 ; i++) sigma.insert(i);
+    for(char i = 97; i <= 122 ; i++) sigma.insert(i);
 }
 
 vector<vector<int> >powerSet(vector<int> conj){
@@ -352,23 +358,25 @@ public:
 
 };
 
+
+
+
 bool lector(AFD A, string line){
-    int currrentState = A.init_state;
+    int currentState = A.init_state;
     char currentLetter;
     pair<int,char> key;
 
-    for(string::iterator it = line.begin() ; it != texto.end(); ++it){
+    for(string::iterator it = line.begin() ; it != line.end(); ++it){
         currentLetter = *it;
         key = make_pair(currentState,currentLetter);
         currentState = A.mapa_transiciones[key];
-        i++;
     }
 
-    finalStates = A.finalstates;
+    vector<int> finalStates = A.finalstates;
 
-    for(int i = 0; i<len(finalStates); i++){
+    for(unsigned int i = 0; i<finalStates.size(); i++){
         int finalState = finalStates[i];
-        if (currentState = finalState){
+        if (currentState == finalState){
             return true;
         }
     }
@@ -382,7 +390,8 @@ int main(){
     //string reg = "((a.b).a)";
     AFND temp = fromERtoAFND(reg);
     //temp.print();
-    initSigma(reg);
+    initSigma();
+    putSelfLoops(temp);
     //cout << temp.final_state << endl;
     AFD temp2(temp);
     for(unsigned int i = 0 ; i< temp2.states.size() ; i++) visitados.push_back(0);
