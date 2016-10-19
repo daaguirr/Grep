@@ -313,6 +313,7 @@ public:
                 this -> addTransition(mapa[Q], mapa[ans], c);
             }
         }
+        for(transition tra : transitions) mapa_transiciones.insert(make_pair(make_pair(tra.from, tra.symbol),tra.to ));
 
     }
     void addTransition(int from, int to, char c){
