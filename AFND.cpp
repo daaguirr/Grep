@@ -13,6 +13,8 @@ struct transition{
     char symbol;     // NOTA : '#' SERA EL SIMBOLO EPSILON
 };
 
+vector<si> MEM;
+vector<bool> init_mem;
 class AFND{
 public:
     vector<int> vertex;
@@ -60,6 +62,8 @@ public:
 
     set<int> epsilonC(int state, vector<bool> visitados){
         set<int> ans;
+        if(init_mem[state]) return MEM[state];
+
         if(visitados[state]) return ans;
 
         vector<bool> visitadostemp = visitados;
@@ -73,11 +77,19 @@ public:
                 }
             }
         }
+
+        init_mem[state] = true;
+        MEM[state] = ans;
         return ans;
     }
 
     set<int> epsilonClausure(int state){
         vector<bool> visitados(vertex.size(), 0);
+        if(MEM.empty()){
+			si temp;
+			for(int i=0 ; i<this -> length() ; i++) MEM.push_back(temp);
+			for(int i=0 ; i<this -> length() ; i++) init_mem.push_back(false);
+		}
         return this -> epsilonC(state, visitados);
     }
 };
@@ -251,6 +263,10 @@ set<T> setMinus(const set<T> &a, const set<T> &b) {
                    inserter(ans, ans.end()));
     return ans;
 }
+
+
+
+
 vector<bool> visitados;
 class AFD{
 public:
@@ -258,56 +274,44 @@ public:
     vector<transition> transitions;
     vector<int> finalstates;
     int init_state;
-    map<si, int> mapa;
+    map<pair<int,char> , int> mapa_transiciones;
 
     AFD(AFND A){
-
+		map<si, int> mapa;
         multimap<pair<int, char>, int> mapatr;
-        for(transition tra : A.transitions) mapatr.insert(make_pair(make_pair(tra.from, tra.symbol), tra.to));
-
-
-        //Estados
-        si initTemp;
-        for(int i = 0; i< A.length() ; i++) initTemp.insert(i);
-        states = powerSet(initTemp);
-
-        for(unsigned int i = 0; i<states.size(); i++) mapa.insert(make_pair(states[i], i));
+        stack<si> dfs_stack;
+        int contador = 0;
+        int fstate = A.getFinalState();
+        //Inicializar mapa de transiciones
+        for(transition tra: A.transitions) mapatr.insert(make_pair(make_pair(tra.from, tra.symbol),tra.to ));
 
         //Estado Inicial
         si epTemp = A.epsilonClausure(0);
+        mapa.insert(make_pair(epTemp, contador));
         init_state = mapa[epTemp];
+        if(epTemp.find(A.final_state)!= epTemp.end()) finalstates.push_back(mapa[epTemp]);
+        //printf("%i\n", init_state);
+        dfs_stack.push(epTemp);
+        while(!dfs_stack.empty()){
+            si Q = dfs_stack.top();
+            dfs_stack.pop();
 
-        imprimirset(epTemp);
-
-        //Estados Finales
-        vsi finalstatestemp = states;
-        si temp2({A.final_state});
-        si temp3= setMinus(initTemp,temp2);
-        vsi temp4 = powerSet(temp3);
-
-        for(si state: temp4){
-            finalstatestemp.erase(remove(finalstatestemp.begin(), finalstatestemp.end(), state), finalstatestemp.end());
-        }
-        for(si state: finalstatestemp) finalstates.push_back(mapa[state]);
-
-
-        //Transiciones
-
-        for(char c: sigma){
-            for(si Q : states){ //falta for para los chars
+            for(char c : sigma){
                 si ans;
-                for(int q : Q){
+                for(int q: Q){
                     multimap<pair<int, char>, int>::iterator it;
-                    //cout << q << " " << c << endl;
                     for (it=mapatr.equal_range(make_pair(q,c)).first; it!=mapatr.equal_range(make_pair(q,c)).second; ++it){
                         auto q1 = it -> second;
                         ans = cup(ans, A.epsilonClausure(q1));
-
                     }
                 }
-                this -> addTransition(mapa[Q],mapa[ans],c);
-                //imprimirset(ans);
-
+                if(mapa.find(ans)==mapa.end()){
+                    mapa.insert(make_pair(ans,++contador));
+                    dfs_stack.push(ans);
+                    states.push_back(ans);
+                    if(ans.count(fstate)!=0) finalstates.push_back(mapa[ans]);
+                }
+                this -> addTransition(mapa[Q], mapa[ans], c);
             }
         }
 
@@ -349,15 +353,17 @@ public:
 };
 
 int main(){
-    string reg = "((u.n)|(n.o))";
-    //string reg = "((a.b)|((a.b).a))*";
+    //string reg = "((u.n)|(n.o))";
+    string reg = "((a.b)|((a.b).a))*";
     //string reg = "((a.b).a)";
     AFND temp = fromERtoAFND(reg);
     //temp.print();
     initSigma(reg);
+    //cout << temp.final_state << endl;
     AFD temp2(temp);
-    for(int i = 0 ; i< temp2.states.size() ; i++) visitados.push_back(0);
+    for(unsigned int i = 0 ; i< temp2.states.size() ; i++) visitados.push_back(0);
     temp2.dfs(temp2.init_state);
     //temp2.print();
     return 0;
 }
+
