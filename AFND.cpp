@@ -63,9 +63,13 @@ public:
     set<int> epsilonC(int state, vector<bool> visitados){
         set<int> ans;
         if(init_mem[state]) return MEM[state];
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> origin/master
         if(visitados[state]) return ans;
-
+		
         vector<bool> visitadostemp = visitados;
         visitadostemp[state] = 1;
         ans.insert(state);
@@ -77,7 +81,11 @@ public:
                 }
             }
         }
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> origin/master
         init_mem[state] = true;
         MEM[state] = ans;
         return ans;
@@ -305,6 +313,7 @@ public:
                         ans = cup(ans, A.epsilonClausure(q1));
                     }
                 }
+<<<<<<< HEAD
                 if(mapa.find(ans)==mapa.end()){
                     mapa.insert(make_pair(ans,++contador));
                     dfs_stack.push(ans);
@@ -312,6 +321,12 @@ public:
                     if(ans.count(fstate)!=0) finalstates.push_back(mapa[ans]);
                 }
                 this -> addTransition(mapa[Q], mapa[ans], c);
+=======
+                this -> addTransition(mapa[Q],mapa[ans],c);
+                mapa_transiciones.insert(make_pair(make_pair(mapa[Q],c),mapa[ans]));
+                //imprimirset(ans);
+
+>>>>>>> origin/master
             }
         }
 
