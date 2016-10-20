@@ -208,10 +208,6 @@ void initSigma(){
     sigma.insert(' ');
 }
 
-    vector<vector<int> > ans;
-    throw "powerSet not implemented";
-    return ans;
-}
 si cup(si A, si B){
     si ans;
     for(int i: A) ans.insert(i);
