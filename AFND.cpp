@@ -296,9 +296,14 @@ bool lector(AFD A, string line){
     return false;
 }
 
-int main(){
+int main(int argc, char **argv) {
+    if (argc != 1) {
+        cerr<< "Cambiamos la forma de entregar el input. Véase el comentario de entrega en u-cursos.\n";
+        return 1;
+    }
     string reg, file;
-    cin >> file >> reg;
+    getline(cin, file);
+    getline(cin, reg);
     AFND temp = fromERtoAFND(reg);
     initSigma();
     AFND temp2 = putSelfLoops(temp);
