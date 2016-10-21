@@ -86,8 +86,8 @@ public:
         vector<bool> visitados(vertex.size(), 0);
         if(MEM.empty()){
 			si temp;
-			for(int i=0 ; i<this -> length() ; i++) MEM.push_back(temp);
-			for(int i=0 ; i<this -> length() ; i++) init_mem.push_back(false);
+			for(int i=0 ; i<length() ; i++) MEM.push_back(temp);
+			for(int i=0 ; i<length() ; i++) init_mem.push_back(false);
 		}
         return this -> epsilonC(state, visitados);
     }
@@ -154,16 +154,18 @@ AFND fromERtoAFND(string er){
 
  	char currentLetter;
 
- 	for(string::iterator it = er.begin() ; it != er.end() ; ++it){
-        currentLetter = *it;
+ 	//for(string::iterator it = er.begin() ; it != er.end() ; ++it){
+        //currentLetter = *it;
+    for (char currentLetter : er) {
         //CASO LETRA
         if(currentLetter != '(' && currentLetter != ')' && currentLetter != '*' && currentLetter != '|' && currentLetter != '.') {
  			//CONSTRUCTOR TROLL
- 			new_afnd = new AFND (2);
-            (*new_afnd).addTrasition(0, 1, currentLetter);
-            //(*new_afnd).addTrasition(1,0, epsilon);
-            operandos.push(*new_afnd);
-            delete new_afnd;
+            AFND new_afnd(2);
+ 			//new_afnd = new AFND (2);
+            //(*new_afnd).addTrasition(0, 1, currentLetter);
+            new_afnd.addTrasition(0, 1, currentLetter);
+            operandos.push(new_afnd);
+            //delete new_afnd;
         } else {
  		    //OPERADORES
  			if(currentLetter == '*') {
@@ -178,14 +180,14 @@ AFND fromERtoAFND(string er){
  				operadores.push(currentLetter);
  			} else {
  			    //CIERRO PARENTESIS
-                char chartemp = operadores.top();
+                char currentOperator = operadores.top();
                 operadores.pop();
                 AFND A = operandos.top();
                 operandos.pop();
                 AFND B = operandos.top();
                 operandos.pop();
-                if(chartemp == '.') operandos.push(concat(B,A));
-                if(chartemp == '|') operandos.push(cup(B,A));
+                if(currentOperator == '.') operandos.push(concat(B,A));
+                if(currentOperator == '|') operandos.push(cup(B,A));
                 operadores.pop();
             }
         }
@@ -202,9 +204,9 @@ AFND putSelfLoops(AFND A){
 }
 
 void initSigma(){
-    for(char i = 48; i <= 57 ; i++) sigma.insert(i);
-    for(char i = 65; i <= 90 ; i++) sigma.insert(i);
-    for(char i = 97; i <= 122 ; i++) sigma.insert(i);
+    for(char i = '0'; i <= '9' ; i++) sigma.insert(i);
+    for(char i = 'A'; i <= 'Z' ; i++) sigma.insert(i);
+    for(char i = 'a'; i <= 'z' ; i++) sigma.insert(i);
     sigma.insert(' ');
 }
 
@@ -235,7 +237,7 @@ public:
         si epTemp = A.epsilonClausure(0);
         mapa.insert(make_pair(epTemp, contador));
         init_state = mapa[epTemp];
-        if(epTemp.find(A.final_state)!= epTemp.end()) finalstates.push_back(mapa[epTemp]);
+        if(epTemp.count(A.final_state)!= 0) finalstates.push_back(mapa[epTemp]);
         dfs_stack.push(epTemp);
         while(!dfs_stack.empty()){
             si Q = dfs_stack.top();
@@ -296,27 +298,21 @@ bool lector(AFD A, string line){
     return false;
 }
 
-int main(int argc, char **argv) {
-    if (argc != 1) {
-        cerr<< "Cambiamos la forma de entregar el input. Véase el comentario de entrega en u-cursos.\n";
-        return 1;
-    }
+int main(){
     string reg, file;
-    getline(cin, file);
-    getline(cin, reg);
-    AFND temp = fromERtoAFND(reg);
+    cin >> file >> reg;
+    AFND afnd = fromERtoAFND(reg);
     initSigma();
-    AFND temp2 = putSelfLoops(temp);
-    AFD temp3(temp2);
+    AFND afndWithLoops = putSelfLoops(afnd);
+    AFD afd(afndWithLoops);
 
     string line;
     ifstream myfile (file);
     if (myfile.is_open()){
         while ( getline (myfile,line) ) {
-            if(lector(temp3, line)) cout << line << '\n';
+            if(lector(afd, line)) cout << line << '\n';
         }
         myfile.close();
     }
     return 0;
 }
-
