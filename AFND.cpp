@@ -182,6 +182,7 @@ AFND fromERtoAFND(string er){
  			    //CIERRO PARENTESIS
                 char currentOperator = operadores.top();
                 operadores.pop();
+                if(currentOperator == '(') continue;
                 AFND A = operandos.top();
                 operandos.pop();
                 AFND B = operandos.top();
@@ -298,21 +299,26 @@ bool lector(AFD A, string line){
     return false;
 }
 
-int main(){
-    string reg, file;
-    cin >> file >> reg;
-    AFND afnd = fromERtoAFND(reg);
-    initSigma();
-    AFND afndWithLoops = putSelfLoops(afnd);
-    AFD afd(afndWithLoops);
 
-    string line;
-    ifstream myfile (file);
-    if (myfile.is_open()){
-        while ( getline (myfile,line) ) {
-            if(lector(afd, line)) cout << line << '\n';
-        }
-        myfile.close();
-    }
+int main(int argc, char **argv) {
+    if (argc != 1) {      
+        cerr<< "Cambiamos la forma de entregar el input. Véase el comentario de entrega en u-cursos.\n";      
+        return 1;
+    }     
+    string reg, file;          
+    getline(cin, file);        
+    getline(cin, reg);         
+    AFND afnd = fromERtoAFND(reg);        
+    initSigma();            
+    AFND afndWithLoops = putSelfLoops(afnd);      
+    AFD afd(afndWithLoops);           
+    string line;        
+    ifstream myfile (file);            
+    if (myfile.is_open()){              
+        while ( getline (myfile,line) ) {               
+            if(lector(afd, line)) cout << line << '\n';     
+        }               
+        myfile.close();                 
+    }  
     return 0;
 }
